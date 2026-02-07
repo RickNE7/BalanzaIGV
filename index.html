@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <!-- Viewport optimizado: evita zoom en inputs y ajusta a pantalla completa -->
+    <!-- Viewport optimizado -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Guía Visual Interactiva - Crédito Fiscal SUNAT</title>
     <!-- Tailwind CSS -->
@@ -10,13 +10,42 @@
     <!-- Iconos Lucide -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        /* Bloqueo de scroll global para sensación de App Nativa */
-        body { 
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
-            touch-action: manipulation; 
-            overflow: hidden; 
-            overscroll-behavior: none; 
+        /* Bloqueo TOTAL de scroll en body para sensación de App Nativa */
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* Adiós barras de desplazamiento globales */
             background-color: #e2e8f0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            touch-action: manipulation;
+            overscroll-behavior: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Contenedor Escalado para cumplir petición de reducción */
+        #app-wrapper {
+            /* Escala reducida para evitar bordes cortados y eliminar scroll lateral */
+            transform: scale(0.9); 
+            transform-origin: center center;
+            max-width: 100vw;
+            max-height: 100vh;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* En pantallas muy grandes, mantenemos el aspecto de tarjeta */
+        @media (min-width: 768px) {
+            #app-wrapper {
+                transform: scale(0.85); /* 85% en escritorio como sugerido */
+                height: auto;
+            }
         }
         
         /* Animaciones de diapositiva */
@@ -33,13 +62,13 @@
         .bar-fill { transition: height 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
         
         /* Sliders Personalizados */
-        input[type=range] { -webkit-appearance: none; background: transparent; cursor: pointer; }
+        input[type=range] { -webkit-appearance: none; background: transparent; cursor: pointer; width: 100%; }
         input[type=range]:focus { outline: none; }
         
         /* Thumb (Bolita) */
         input[type=range]::-webkit-slider-thumb { 
             -webkit-appearance: none; 
-            height: 28px; width: 28px; /* Más grande para dedo táctil */
+            height: 28px; width: 28px; 
             border-radius: 50%; 
             margin-top: -12px; 
             box-shadow: 0 2px 6px rgba(0,0,0,0.3); 
@@ -59,402 +88,398 @@
         #rangeCompras::-webkit-slider-runnable-track { background: #dcfce7; }
     </style>
 </head>
-<body class="h-[100dvh] w-screen flex items-center justify-center text-gray-800">
+<body>
 
-    <!-- CONTENEDOR PRINCIPAL: Adaptable a móvil (100%) y PC (centrado) -->
-    <div class="w-full h-full md:h-[90vh] md:max-w-6xl bg-white md:rounded-3xl shadow-2xl overflow-hidden flex flex-col relative border border-gray-200">
-        
-        <!-- HEADER -->
-        <div class="bg-gradient-to-r from-blue-900 to-blue-700 text-white p-3 md:p-5 flex justify-between items-center shadow-lg z-20 shrink-0">
-            <div class="flex items-center gap-3">
-                <div class="bg-white text-blue-900 p-1.5 md:p-2 rounded-lg font-black tracking-tighter text-sm md:text-xl shadow-sm">
-                    SUNAT
+    <!-- WRAPPER PARA EL ESCALADO -->
+    <div id="app-wrapper">
+        <!-- CONTENEDOR PRINCIPAL -->
+        <!-- Cambiado w-screen a w-full y añadido max-w para seguridad -->
+        <div class="w-full h-full md:h-[85vh] md:max-w-6xl md:w-[95%] bg-white md:rounded-3xl shadow-2xl overflow-hidden flex flex-col relative border border-gray-200">
+            
+            <!-- HEADER -->
+            <div class="bg-gradient-to-r from-blue-900 to-blue-700 text-white p-3 md:p-5 flex justify-between items-center shadow-lg z-20 shrink-0 w-full">
+                <div class="flex items-center gap-3 overflow-hidden">
+                    <div class="bg-white text-blue-900 p-1.5 md:p-2 rounded-lg font-black tracking-tighter text-sm md:text-xl shadow-sm shrink-0">
+                        SUNAT
+                    </div>
+                    <div class="leading-tight truncate">
+                        <h1 class="text-sm md:text-lg font-bold tracking-wide opacity-95 truncate">GUÍA VISUAL</h1>
+                        <p class="text-[9px] md:text-[10px] text-blue-100 uppercase tracking-widest hidden sm:block">Crédito Fiscal</p>
+                    </div>
                 </div>
-                <div class="leading-tight">
-                    <h1 class="text-sm md:text-lg font-bold tracking-wide opacity-95">GUÍA VISUAL</h1>
-                    <p class="text-[9px] md:text-[10px] text-blue-100 uppercase tracking-widest hidden sm:block">Crédito Fiscal</p>
-                </div>
+                <!-- Progress Dots -->
+                <div class="flex gap-1.5 shrink-0" id="progressDots"></div>
             </div>
-            <!-- Progress Dots -->
-            <div class="flex gap-2" id="progressDots"></div>
-        </div>
 
-        <!-- CONTENT AREA (Scrollable) -->
-        <div class="flex-1 overflow-y-auto overflow-x-hidden relative bg-slate-50 scroll-smooth" id="contentArea">
-            <div class="p-4 md:p-8 h-full flex flex-col min-h-0">
-                
-                <!-- Dynamic Title -->
-                <div class="flex items-center gap-3 mb-2 md:mb-6 border-b pb-2 border-gray-200 shrink-0">
-                    <div class="bg-blue-100 text-blue-700 w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-bold text-sm md:text-lg shadow-sm shrink-0" id="slideIdDisplay">
-                        1
+            <!-- CONTENT AREA (Scrollable internally) -->
+            <div class="flex-1 overflow-y-auto overflow-x-hidden relative bg-slate-50 scroll-smooth w-full" id="contentArea">
+                <div class="p-3 md:p-8 h-full flex flex-col min-h-0 w-full max-w-full">
+                    
+                    <!-- Dynamic Title -->
+                    <div class="flex items-center gap-3 mb-2 md:mb-6 border-b pb-2 border-gray-200 shrink-0 w-full">
+                        <div class="bg-blue-100 text-blue-700 w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-bold text-sm md:text-lg shadow-sm shrink-0" id="slideIdDisplay">
+                            1
+                        </div>
+                        <h2 class="text-base md:text-2xl font-bold text-gray-800 leading-tight line-clamp-1 break-words" id="slideTitleDisplay">El Concepto Visual</h2>
                     </div>
-                    <h2 class="text-base md:text-2xl font-bold text-gray-800 leading-tight line-clamp-1" id="slideTitleDisplay">El Concepto Visual</h2>
-                </div>
 
-                <!-- SLIDE 1: LA BALANZA -->
-                <div class="slide active justify-center" id="slide-0">
-                    <div class="flex flex-col items-center justify-center flex-1 pb-4">
-                        <div class="w-full max-w-4xl bg-white p-4 md:p-8 rounded-xl shadow-md border border-gray-100">
-                            <h3 class="text-center text-base md:text-xl font-bold text-gray-700 mb-6 md:mb-10">La Balanza del IGV</h3>
-                            
-                            <div class="flex justify-between items-end h-40 md:h-64 px-2 md:px-12 border-b-4 border-gray-300 relative">
-                                <!-- Lado Ventas -->
-                                <div class="flex flex-col items-center w-5/12 group cursor-pointer transition-transform hover:-translate-y-1 h-full justify-end">
-                                    <div class="bg-red-50 p-2 md:p-4 rounded-t-lg w-full text-center border-t-4 border-red-500 relative flex flex-col justify-end shadow-sm h-3/4">
-                                        <i data-lucide="trending-up" class="w-8 h-8 md:w-12 md:h-12 mx-auto text-red-600 mb-2"></i>
-                                        <span class="block font-bold text-red-800 text-sm md:text-xl leading-tight">Débito Fiscal</span>
-                                        <span class="text-[10px] md:text-sm text-red-600">IGV Ventas</span>
-                                    </div>
-                                </div>
-
-                                <div class="text-2xl md:text-5xl text-gray-300 font-black mb-8 md:mb-14">-</div>
-
-                                <!-- Lado Compras -->
-                                <div class="flex flex-col items-center w-5/12 group cursor-pointer transition-transform hover:-translate-y-1 h-full justify-end">
-                                    <div class="bg-green-50 p-2 md:p-4 rounded-t-lg w-full text-center border-t-4 border-green-500 relative flex flex-col justify-end shadow-sm h-1/2">
-                                        <i data-lucide="trending-down" class="w-8 h-8 md:w-12 md:h-12 mx-auto text-green-600 mb-2"></i>
-                                        <span class="block font-bold text-green-800 text-sm md:text-xl leading-tight">Crédito Fiscal</span>
-                                        <span class="text-[10px] md:text-sm text-green-600">IGV Compras</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="mt-8 text-center">
-                                <div class="inline-block bg-blue-600 text-white px-5 py-2 md:px-8 md:py-3 rounded-full shadow-lg font-bold text-sm md:text-lg animate-pulse">
-                                    = Impuesto a Pagar
-                                </div>
-                                <p class="mt-4 text-gray-500 max-w-lg mx-auto text-xs md:text-base px-2">
-                                    El crédito fiscal te permite <strong>recuperar</strong> el IGV de tus compras restándolo del IGV de tus ventas.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SLIDE 2: EL FILTRO -->
-                <div class="slide" id="slide-1">
-                    <div class="flex flex-col items-center justify-start flex-1 overflow-y-auto">
-                        <p class="text-center text-gray-600 mb-6 text-sm md:text-lg px-4 max-w-2xl">
-                            Para que una compra pase el "filtro" SUNAT, debe cumplir <strong>simultáneamente</strong>:
-                        </p>
-                        
-                        <div class="relative w-full max-w-sm md:max-w-md mx-auto flex flex-col items-center space-y-3">
-                            
-                            <!-- Input -->
-                            <div class="bg-white border-2 border-gray-300 p-3 rounded-lg w-48 md:w-64 text-center shadow-sm z-10">
-                                <span class="text-gray-500 font-bold text-sm md:text-lg">Tu Compra</span>
-                            </div>
-                            
-                            <i data-lucide="arrow-down" class="text-gray-400 w-6 h-6"></i>
-                
-                            <!-- Filter 1 -->
-                            <div class="w-full bg-blue-50 border-2 border-blue-200 rounded-xl p-4 md:p-5 relative shadow-md">
-                                <div class="absolute -left-3 top-4 bg-blue-600 text-white w-7 h-7 flex items-center justify-center rounded-full font-bold text-sm">1</div>
-                                <h4 class="font-bold text-blue-800 ml-6 text-sm md:text-lg">¿Es Costo o Gasto?</h4>
-                                <p class="text-[11px] md:text-sm text-blue-600 ml-6 mt-1">¿Necesario para el negocio? (Ley IR)</p>
-                                <div class="flex gap-2 mt-3 ml-6">
-                                    <div class="flex-1 bg-white p-2 rounded border border-blue-100 text-[11px] md:text-sm text-center text-green-700 font-bold">
-                                        <i data-lucide="check" class="inline mr-1 w-3 h-3"></i> Harina
-                                    </div>
-                                    <div class="flex-1 bg-white p-2 rounded border border-blue-100 text-[11px] md:text-sm text-center text-red-700 font-bold decoration-line-through">
-                                        <i data-lucide="x" class="inline mr-1 w-3 h-3"></i> TV Hogar
-                                    </div>
-                                </div>
-                            </div>
-                
-                            <i data-lucide="arrow-down" class="text-blue-500 font-bold w-6 h-6"></i>
-                
-                            <!-- Filter 2 -->
-                            <div class="w-full bg-indigo-50 border-2 border-indigo-200 rounded-xl p-4 md:p-5 relative shadow-md">
-                                <div class="absolute -left-3 top-4 bg-indigo-600 text-white w-7 h-7 flex items-center justify-center rounded-full font-bold text-sm">2</div>
-                                <h4 class="font-bold text-indigo-800 ml-6 text-sm md:text-lg">¿Destinado a Op. Gravada?</h4>
-                                <p class="text-[11px] md:text-sm text-indigo-600 ml-6 mt-1">¿Venderás algo con IGV?</p>
-                                <div class="flex gap-2 mt-3 ml-6">
-                                    <div class="flex-1 bg-white p-2 rounded border border-indigo-100 text-[11px] md:text-sm text-center text-green-700 font-bold">
-                                        <i data-lucide="check" class="inline mr-1 w-3 h-3"></i> Muebles
-                                    </div>
-                                    <div class="flex-1 bg-white p-2 rounded border border-indigo-100 text-[11px] md:text-sm text-center text-red-700 font-bold decoration-line-through">
-                                        <i data-lucide="x" class="inline mr-1 w-3 h-3"></i> Libros
-                                    </div>
-                                </div>
-                            </div>
-                
-                            <i data-lucide="arrow-down" class="text-indigo-500 font-bold w-6 h-6"></i>
-                
-                            <!-- Result -->
-                            <div class="bg-green-100 border-2 border-green-500 p-3 rounded-lg w-64 text-center shadow-lg animate-bounce mt-2">
-                                <span class="text-green-800 font-black text-lg">¡DERECHO AL CRÉDITO!</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SLIDE 3: FACTURA INTERACTIVA -->
-                <div class="slide" id="slide-2">
-                    <div class="flex flex-col lg:flex-row h-full gap-4 lg:gap-8 items-start lg:items-center justify-center">
-                        <!-- Factura Visual -->
-                        <div class="w-full lg:w-1/2 bg-white p-3 md:p-6 shadow-xl border border-gray-200 relative text-[11px] md:text-sm font-mono rounded-sm transition-transform lg:hover:scale-105">
-                            <div class="border-2 border-gray-800 p-3 md:p-4 h-full">
-                                <!-- Header (Emisor) -->
-                                <div id="inv-emisor" class="invoice-part border border-dashed border-gray-300 p-2 mb-3 hover:bg-yellow-50 hover:border-yellow-500 rounded">
-                                    <div class="flex justify-between items-start gap-2">
-                                        <div>
-                                            <div class="font-bold text-sm md:text-base">PROVEEDORES S.A.C.</div>
-                                            <div class="text-gray-500">Av. Los Negocios 123, Lima</div>
-                                        </div>
-                                        <div class="border border-gray-800 p-1 text-center bg-gray-50 shrink-0 min-w-[100px]">
-                                            <div class="font-bold">R.U.C. 20123456789</div>
-                                            <div class="bg-gray-800 text-white font-bold px-1 text-[9px] md:text-[10px] mt-1">FACTURA ELECTRÓNICA</div>
-                                            <div class="mt-1">E001-452</div>
-                                        </div>
-                                    </div>
-                                </div>
-                
-                                <!-- Cliente -->
-                                <div class="mb-3 p-2 border border-transparent rounded hover:bg-blue-50 hover:border-blue-200 transition-colors">
-                                    <div><strong>Señor(es):</strong> MI EMPRESA S.A.C.</div>
-                                    <div><strong>RUC:</strong> 20987654321</div>
-                                    <div><strong>Fecha:</strong> <span id="currentDate"></span></div>
-                                </div>
-                
-                                <!-- Detalle -->
-                                <table class="w-full mb-3 border-collapse">
-                                    <thead>
-                                        <tr class="bg-gray-100 border-y border-gray-800">
-                                            <th class="text-left p-1.5">Cant.</th>
-                                            <th class="text-left p-1.5">Descripción</th>
-                                            <th class="text-right p-1.5">P. Unit</th>
-                                            <th class="text-right p-1.5">Total</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td class="p-1.5">10</td>
-                                            <td class="p-1.5">Insumos</td>
-                                            <td class="p-1.5 text-right">100.00</td>
-                                            <td class="p-1.5 text-right">1,000.00</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                
-                                <!-- Totales (IGV) -->
-                                <div id="inv-igv" class="invoice-part flex justify-end mt-2 hover:bg-green-50 hover:border-green-500 border border-transparent p-2 rounded">
-                                    <div class="w-3/4 md:w-1/2">
-                                        <div class="flex justify-between py-1">
-                                            <span>Op. Gravada:</span>
-                                            <span>1,000.00</span>
-                                        </div>
-                                        <div class="flex justify-between py-1 font-bold border border-red-500 rounded text-red-600 bg-red-50 px-2 my-1 shadow-sm">
-                                            <span>IGV (18%):</span>
-                                            <span>180.00</span>
-                                        </div>
-                                        <div class="flex justify-between py-1 border-t-2 border-gray-800 mt-1">
-                                            <span class="font-bold">Total:</span>
-                                            <span class="font-bold">1,180.00</span>
-                                        </div>
-                                    </div>
-                                </div>
-                
-                                <!-- Footer (Bancarizacion) -->
-                                <div id="inv-banco" class="invoice-part mt-3 text-[10px] md:text-xs text-gray-500 text-center border p-2 border-dashed border-gray-300 rounded hover:bg-indigo-50 hover:border-indigo-500">
-                                     Operación sujeta a Detracción del 10%. Cancelado vía Banco.
-                                </div>
-                            </div>
-                        </div>
-                
-                        <!-- Panel de Explicación -->
-                        <div class="w-full lg:w-1/2 space-y-3">
-                            <h4 class="font-bold text-gray-700 text-sm md:text-lg flex items-center gap-2">
-                                <i data-lucide="mouse-pointer-2" class="w-4 h-4"></i>
-                                Toca la factura para ver detalles:
-                            </h4>
-                            
-                            <div id="exp-emisor" class="explanation-card p-3 md:p-4 rounded-lg border-l-4 bg-gray-50 border-gray-300 shadow-sm">
-                                <div class="flex items-center gap-2 font-bold text-gray-800 text-sm md:text-base">
-                                    <i data-lucide="shield-check" class="w-5 h-5 text-yellow-600"></i>
-                                    1. Emisor Habilitado
-                                </div>
-                                <p class="text-xs md:text-sm text-gray-600 mt-1 pl-7">El RUC del proveedor debe estar ACTIVO y HABIDO.</p>
-                            </div>
-                
-                            <div id="exp-igv" class="explanation-card p-3 md:p-4 rounded-lg border-l-4 bg-gray-50 border-gray-300 shadow-sm">
-                                <div class="flex items-center gap-2 font-bold text-gray-800 text-sm md:text-base">
-                                    <i data-lucide="pie-chart" class="w-5 h-5 text-green-600"></i>
-                                    2. IGV Desagregado
-                                </div>
-                                <p class="text-xs md:text-sm text-gray-600 mt-1 pl-7">El impuesto debe mostrarse por separado, no incluido.</p>
-                            </div>
-                
-                            <div id="exp-banco" class="explanation-card p-3 md:p-4 rounded-lg border-l-4 bg-gray-50 border-gray-300 shadow-sm">
-                                <div class="flex items-center gap-2 font-bold text-gray-800 text-sm md:text-base">
-                                    <i data-lucide="dollar-sign" class="w-5 h-5 text-indigo-600"></i>
-                                    3. Medios de Pago
-                                </div>
-                                <p class="text-xs md:text-sm text-gray-600 mt-1 pl-7">Bancarizar si supera S/ 2,000 o $500.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SLIDE 4: SIMULADOR 621 (MEJORADO) -->
-                <div class="slide" id="slide-3">
-                    <div class="flex flex-col h-full gap-4 lg:gap-8 pb-4">
-                        <!-- Controles -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-8 shrink-0">
-                            <!-- Input Ventas -->
-                            <div class="bg-white p-4 rounded-xl shadow-sm border border-red-100">
-                                <div class="flex justify-between items-center mb-4">
-                                    <label class="text-sm md:text-base font-bold text-red-600 uppercase">Tus Ventas</label>
-                                    <div class="bg-red-50 text-red-700 px-3 py-1 rounded text-sm md:text-base font-mono font-bold" id="lblBaseVentas">S/ 5,000</div>
-                                </div>
-                                <input type="range" id="rangeVentas" min="0" max="20000" step="100" value="5000" class="w-full">
-                                <div class="flex justify-between text-xs text-gray-400 mt-2 font-medium">
-                                    <span>S/ 0</span>
-                                    <span>Max: S/ 20,000</span>
-                                </div>
-                            </div>
-
-                            <!-- Input Compras -->
-                            <div class="bg-white p-4 rounded-xl shadow-sm border border-green-100">
-                                <div class="flex justify-between items-center mb-4">
-                                    <label class="text-sm md:text-base font-bold text-green-600 uppercase">Tus Compras</label>
-                                    <div class="bg-green-50 text-green-700 px-3 py-1 rounded text-sm md:text-base font-mono font-bold" id="lblBaseCompras">S/ 2,000</div>
-                                </div>
-                                <input type="range" id="rangeCompras" min="0" max="20000" step="100" value="2000" class="w-full">
-                                <div class="flex justify-between text-xs text-gray-400 mt-2 font-medium">
-                                    <span>S/ 0</span>
-                                    <span>Max: S/ 20,000</span>
-                                </div>
-                            </div>
-                        </div>
-              
-                        <!-- Gráfico Visual -->
-                        <div class="flex-1 bg-white rounded-xl border border-slate-200 p-4 md:p-8 flex flex-col shadow-inner relative overflow-hidden min-h-[250px] lg:min-h-[300px]">
-                            <!-- Líneas de guía de fondo -->
-                            <div class="absolute inset-0 flex flex-col justify-between p-8 opacity-5 pointer-events-none z-0">
-                                <div class="w-full h-px bg-slate-900"></div>
-                                <div class="w-full h-px bg-slate-900"></div>
-                                <div class="w-full h-px bg-slate-900"></div>
-                                <div class="w-full h-px bg-slate-900"></div>
-                                <div class="w-full h-px bg-slate-900"></div>
-                            </div>
-
-                            <!-- Área de Barras -->
-                            <div class="flex-1 flex items-end justify-center gap-16 md:gap-32 relative z-10 pb-2">
+                    <!-- SLIDE 1: LA BALANZA -->
+                    <div class="slide active justify-center w-full" id="slide-0">
+                        <div class="flex flex-col items-center justify-center flex-1 pb-4 w-full">
+                            <div class="w-full max-w-4xl bg-white p-3 md:p-8 rounded-xl shadow-md border border-gray-100">
+                                <h3 class="text-center text-base md:text-xl font-bold text-gray-700 mb-4 md:mb-10">La Balanza del IGV</h3>
                                 
-                                <!-- Barra Ventas -->
-                                <div class="flex flex-col items-center w-20 md:w-32 h-full justify-end group">
-                                    <!-- Contenedor Barra -->
-                                    <div id="barVentas" class="bar-fill w-full bg-gradient-to-t from-red-600 to-red-400 rounded-t-lg shadow-lg relative flex justify-center pt-2 overflow-hidden border-t border-red-300" style="height: 25%;">
-                                        <!-- Texto Horizontal en la parte superior -->
-                                        <span id="txtBarVentas" class="text-white font-bold text-xs md:text-lg tracking-wide drop-shadow-md z-20 whitespace-nowrap px-1">S/ 900</span>
+                                <div class="flex justify-between items-end h-32 md:h-64 px-1 md:px-12 border-b-4 border-gray-300 relative">
+                                    <!-- Lado Ventas -->
+                                    <div class="flex flex-col items-center w-5/12 group cursor-pointer transition-transform hover:-translate-y-1 h-full justify-end">
+                                        <div class="bg-red-50 p-2 md:p-4 rounded-t-lg w-full text-center border-t-4 border-red-500 relative flex flex-col justify-end shadow-sm h-3/4">
+                                            <i data-lucide="trending-up" class="w-6 h-6 md:w-12 md:h-12 mx-auto text-red-600 mb-1 md:mb-2"></i>
+                                            <span class="block font-bold text-red-800 text-xs md:text-xl leading-tight">Débito Fiscal</span>
+                                            <span class="text-[9px] md:text-sm text-red-600">IGV Ventas</span>
+                                        </div>
                                     </div>
-                                    <div class="mt-3 text-xs md:text-sm font-bold text-gray-500 uppercase tracking-wider text-center border-t-2 border-red-200 pt-2 w-full">Débito</div>
-                                </div>
-                    
-                                <!-- VS Icon Flotante -->
-                                <div class="absolute bottom-12 text-gray-200 font-black text-5xl md:text-7xl select-none z-0">VS</div>
-                    
-                                <!-- Barra Compras -->
-                                <div class="flex flex-col items-center w-20 md:w-32 h-full justify-end group">
-                                    <div id="barCompras" class="bar-fill w-full bg-gradient-to-t from-green-600 to-green-400 rounded-t-lg shadow-lg relative flex justify-center pt-2 overflow-hidden border-t border-green-300" style="height: 10%;">
-                                        <span id="txtBarCompras" class="text-white font-bold text-xs md:text-lg tracking-wide drop-shadow-md z-20 whitespace-nowrap px-1">S/ 360</span>
+
+                                    <div class="text-xl md:text-5xl text-gray-300 font-black mb-6 md:mb-14 px-1">-</div>
+
+                                    <!-- Lado Compras -->
+                                    <div class="flex flex-col items-center w-5/12 group cursor-pointer transition-transform hover:-translate-y-1 h-full justify-end">
+                                        <div class="bg-green-50 p-2 md:p-4 rounded-t-lg w-full text-center border-t-4 border-green-500 relative flex flex-col justify-end shadow-sm h-1/2">
+                                            <i data-lucide="trending-down" class="w-6 h-6 md:w-12 md:h-12 mx-auto text-green-600 mb-1 md:mb-2"></i>
+                                            <span class="block font-bold text-green-800 text-xs md:text-xl leading-tight">Crédito Fiscal</span>
+                                            <span class="text-[9px] md:text-sm text-green-600">IGV Compras</span>
+                                        </div>
                                     </div>
-                                    <div class="mt-3 text-xs md:text-sm font-bold text-gray-500 uppercase tracking-wider text-center border-t-2 border-green-200 pt-2 w-full">Crédito</div>
                                 </div>
-                            </div>
-                        </div>
-              
-                        <!-- Resultado Final -->
-                        <div id="resultBox" class="p-4 md:p-6 rounded-xl text-white shadow-lg text-center transition-colors duration-300 bg-blue-600 shrink-0 flex flex-col items-center justify-center min-h-[100px]">
-                            <h3 id="resultTitle" class="uppercase text-xs md:text-sm font-bold tracking-widest opacity-90 mb-2">
-                                Resultado: Impuesto a Pagar
-                            </h3>
-                            <div class="flex items-baseline gap-3">
-                                <span class="text-lg md:text-xl opacity-80 font-light hidden sm:inline">Total:</span>
-                                <div id="resultAmount" class="text-4xl md:text-5xl font-black tracking-tight">
-                                    S/ 540.00
+                                
+                                <div class="mt-6 md:mt-8 text-center">
+                                    <div class="inline-block bg-blue-600 text-white px-4 py-2 md:px-8 md:py-3 rounded-full shadow-lg font-bold text-xs md:text-lg animate-pulse">
+                                        = Impuesto a Pagar
+                                    </div>
+                                    <p class="mt-3 text-gray-500 max-w-lg mx-auto text-[10px] md:text-base px-2 leading-tight">
+                                        El crédito fiscal te permite <strong>recuperar</strong> el IGV de tus compras restándolo del IGV de tus ventas.
+                                    </p>
                                 </div>
-                            </div>
-                            <div id="resultMsg" class="text-xs md:text-sm mt-3 bg-white/20 px-4 py-1.5 rounded-full hidden backdrop-blur-sm font-medium animate-bounce">
-                                ✨ Saldo a favor para el siguiente mes
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- SLIDE 5: EL SEMÁFORO -->
-                <div class="slide" id="slide-4">
-                    <div class="flex items-center justify-center h-full pb-4">
-                        <div class="grid grid-cols-1 gap-6 w-full max-w-3xl h-full overflow-y-auto content-center px-2">
+                    <!-- SLIDE 2: EL FILTRO -->
+                    <div class="slide w-full" id="slide-1">
+                        <div class="flex flex-col items-center justify-start flex-1 overflow-y-auto w-full">
+                            <p class="text-center text-gray-600 mb-4 text-xs md:text-lg px-2 max-w-2xl">
+                                Para que una compra pase el "filtro" SUNAT, debe cumplir <strong>simultáneamente</strong>:
+                            </p>
                             
-                            <!-- Red Light -->
-                            <div class="bg-white rounded-xl shadow-md border-l-8 border-red-500 p-5 md:p-6 flex items-start md:items-center gap-5 transition-transform hover:scale-[1.01]">
-                                <div class="bg-red-100 p-4 rounded-full shrink-0">
-                                    <i data-lucide="alert-triangle" class="w-8 h-8 md:w-10 md:h-10 text-red-600"></i>
+                            <div class="relative w-full max-w-[280px] md:max-w-md mx-auto flex flex-col items-center space-y-2 px-1">
+                                
+                                <!-- Input -->
+                                <div class="bg-white border-2 border-gray-300 p-2 md:p-3 rounded-lg w-full text-center shadow-sm z-10">
+                                    <span class="text-gray-500 font-bold text-xs md:text-lg">Tu Compra</span>
                                 </div>
-                                <div>
-                                    <h3 class="font-bold text-lg md:text-xl text-gray-800">Peligro: Operaciones No Reales</h3>
-                                    <p class="text-sm md:text-base text-gray-600 mt-1">
-                                        Usar facturas falsas ("de favor") es delito de defraudación tributaria. Pena de cárcel y multas.
-                                    </p>
+                                
+                                <i data-lucide="arrow-down" class="text-gray-400 w-5 h-5 md:w-6 md:h-6"></i>
+                    
+                                <!-- Filter 1 -->
+                                <div class="w-full bg-blue-50 border-2 border-blue-200 rounded-xl p-3 md:p-5 relative shadow-md">
+                                    <div class="absolute -left-2 top-3 bg-blue-600 text-white w-6 h-6 flex items-center justify-center rounded-full font-bold text-xs">1</div>
+                                    <h4 class="font-bold text-blue-800 ml-5 text-xs md:text-lg">¿Es Costo o Gasto?</h4>
+                                    <p class="text-[10px] md:text-sm text-blue-600 ml-5 mt-0.5">¿Necesario para el negocio? (Ley IR)</p>
+                                    <div class="flex gap-2 mt-2 ml-5">
+                                        <div class="flex-1 bg-white p-1.5 rounded border border-blue-100 text-[10px] md:text-sm text-center text-green-700 font-bold">
+                                            <i data-lucide="check" class="inline mr-1 w-3 h-3"></i> Harina
+                                        </div>
+                                        <div class="flex-1 bg-white p-1.5 rounded border border-blue-100 text-[10px] md:text-sm text-center text-red-700 font-bold decoration-line-through">
+                                            <i data-lucide="x" class="inline mr-1 w-3 h-3"></i> TV Hogar
+                                        </div>
+                                    </div>
+                                </div>
+                    
+                                <i data-lucide="arrow-down" class="text-blue-500 font-bold w-5 h-5 md:w-6 md:h-6"></i>
+                    
+                                <!-- Filter 2 -->
+                                <div class="w-full bg-indigo-50 border-2 border-indigo-200 rounded-xl p-3 md:p-5 relative shadow-md">
+                                    <div class="absolute -left-2 top-3 bg-indigo-600 text-white w-6 h-6 flex items-center justify-center rounded-full font-bold text-xs">2</div>
+                                    <h4 class="font-bold text-indigo-800 ml-5 text-xs md:text-lg">¿Destinado a Op. Gravada?</h4>
+                                    <p class="text-[10px] md:text-sm text-indigo-600 ml-5 mt-0.5">¿Venderás algo con IGV?</p>
+                                    <div class="flex gap-2 mt-2 ml-5">
+                                        <div class="flex-1 bg-white p-1.5 rounded border border-indigo-100 text-[10px] md:text-sm text-center text-green-700 font-bold">
+                                            <i data-lucide="check" class="inline mr-1 w-3 h-3"></i> Muebles
+                                        </div>
+                                        <div class="flex-1 bg-white p-1.5 rounded border border-indigo-100 text-[10px] md:text-sm text-center text-red-700 font-bold decoration-line-through">
+                                            <i data-lucide="x" class="inline mr-1 w-3 h-3"></i> Libros
+                                        </div>
+                                    </div>
+                                </div>
+                    
+                                <i data-lucide="arrow-down" class="text-indigo-500 font-bold w-5 h-5 md:w-6 md:h-6"></i>
+                    
+                                <!-- Result -->
+                                <div class="bg-green-100 border-2 border-green-500 p-2 md:p-3 rounded-lg w-full text-center shadow-lg animate-bounce mt-1">
+                                    <span class="text-green-800 font-black text-sm md:text-lg">¡DERECHO AL CRÉDITO!</span>
                                 </div>
                             </div>
-                
-                            <!-- Yellow Light -->
-                            <div class="bg-white rounded-xl shadow-md border-l-8 border-yellow-500 p-5 md:p-6 flex items-start md:items-center gap-5 transition-transform hover:scale-[1.01]">
-                                <div class="bg-yellow-100 p-4 rounded-full shrink-0">
-                                    <i data-lucide="shopping-cart" class="w-8 h-8 md:w-10 md:h-10 text-yellow-600"></i>
-                                </div>
-                                <div>
-                                    <h3 class="font-bold text-lg md:text-xl text-gray-800">Precaución: Gastos Personales</h3>
-                                    <p class="text-sm md:text-base text-gray-600 mt-1">
-                                        El mercado de casa, ropa personal o licores NO otorgan crédito fiscal. SUNAT reparará esos gastos.
-                                    </p>
-                                </div>
-                            </div>
-                
-                            <!-- Green Light -->
-                            <div class="bg-white rounded-xl shadow-md border-l-8 border-green-500 p-5 md:p-6 flex items-start md:items-center gap-5 transition-transform hover:scale-[1.01]">
-                                <div class="bg-green-100 p-4 rounded-full shrink-0">
-                                    <i data-lucide="check-circle-2" class="w-8 h-8 md:w-10 md:h-10 text-green-600"></i>
-                                </div>
-                                <div>
-                                    <h3 class="font-bold text-lg md:text-xl text-gray-800">Zona Segura: Buenas Prácticas</h3>
-                                    <p class="text-sm md:text-base text-gray-600 mt-1">
-                                        Archivar XMLs, verificar RUCs activos y pagar detracciones a tiempo.
-                                    </p>
-                                </div>
-                            </div>
-
                         </div>
+                    </div>
+
+                    <!-- SLIDE 3: FACTURA INTERACTIVA -->
+                    <div class="slide w-full" id="slide-2">
+                        <div class="flex flex-col lg:flex-row h-full gap-3 lg:gap-8 items-start lg:items-center justify-center w-full">
+                            <!-- Factura Visual -->
+                            <div class="w-full lg:w-1/2 bg-white p-3 md:p-6 shadow-xl border border-gray-200 relative text-[10px] md:text-sm font-mono rounded-sm transition-transform lg:hover:scale-105">
+                                <div class="border-2 border-gray-800 p-2 md:p-4 h-full">
+                                    <!-- Header (Emisor) -->
+                                    <div id="inv-emisor" class="invoice-part border border-dashed border-gray-300 p-2 mb-2 hover:bg-yellow-50 hover:border-yellow-500 rounded">
+                                        <div class="flex justify-between items-start gap-1">
+                                            <div>
+                                                <div class="font-bold text-xs md:text-base">PROVEEDORES S.A.C.</div>
+                                                <div class="text-gray-500">Av. Los Negocios 123, Lima</div>
+                                            </div>
+                                            <div class="border border-gray-800 p-1 text-center bg-gray-50 shrink-0 min-w-[80px]">
+                                                <div class="font-bold text-[9px] md:text-xs">R.U.C. 20123456789</div>
+                                                <div class="bg-gray-800 text-white font-bold px-1 text-[8px] md:text-[10px] mt-1">FACTURA ELECTRÓNICA</div>
+                                                <div class="mt-1 text-[9px]">E001-452</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                    
+                                    <!-- Cliente -->
+                                    <div class="mb-2 p-1 border border-transparent rounded hover:bg-blue-50 hover:border-blue-200 transition-colors">
+                                        <div><strong>Señor(es):</strong> MI EMPRESA S.A.C.</div>
+                                        <div><strong>RUC:</strong> 20987654321</div>
+                                        <div><strong>Fecha:</strong> <span id="currentDate"></span></div>
+                                    </div>
+                    
+                                    <!-- Detalle -->
+                                    <table class="w-full mb-2 border-collapse">
+                                        <thead>
+                                            <tr class="bg-gray-100 border-y border-gray-800">
+                                                <th class="text-left p-1">Cant.</th>
+                                                <th class="text-left p-1">Descripción</th>
+                                                <th class="text-right p-1">P. Unit</th>
+                                                <th class="text-right p-1">Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="p-1">10</td>
+                                                <td class="p-1">Insumos</td>
+                                                <td class="p-1 text-right">100.00</td>
+                                                <td class="p-1 text-right">1,000.00</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                    
+                                    <!-- Totales (IGV) -->
+                                    <div id="inv-igv" class="invoice-part flex justify-end mt-1 hover:bg-green-50 hover:border-green-500 border border-transparent p-1 rounded">
+                                        <div class="w-full md:w-3/4">
+                                            <div class="flex justify-between py-0.5">
+                                                <span>Op. Gravada:</span>
+                                                <span>1,000.00</span>
+                                            </div>
+                                            <div class="flex justify-between py-0.5 font-bold border border-red-500 rounded text-red-600 bg-red-50 px-2 my-0.5 shadow-sm">
+                                                <span>IGV (18%):</span>
+                                                <span>180.00</span>
+                                            </div>
+                                            <div class="flex justify-between py-0.5 border-t-2 border-gray-800 mt-0.5">
+                                                <span class="font-bold">Total:</span>
+                                                <span class="font-bold">1,180.00</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                    
+                                    <!-- Footer (Bancarizacion) -->
+                                    <div id="inv-banco" class="invoice-part mt-2 text-[9px] md:text-xs text-gray-500 text-center border p-1 border-dashed border-gray-300 rounded hover:bg-indigo-50 hover:border-indigo-500">
+                                         Sujeto a Detracción. Pagado en Banco.
+                                    </div>
+                                </div>
+                            </div>
+                    
+                            <!-- Panel de Explicación -->
+                            <div class="w-full lg:w-1/2 space-y-2">
+                                <h4 class="font-bold text-gray-700 text-xs md:text-lg flex items-center gap-2">
+                                    <i data-lucide="mouse-pointer-2" class="w-3 h-3 md:w-4 md:h-4"></i>
+                                    Toca la factura:
+                                </h4>
+                                
+                                <div id="exp-emisor" class="explanation-card p-2 md:p-4 rounded-lg border-l-4 bg-gray-50 border-gray-300 shadow-sm">
+                                    <div class="flex items-center gap-2 font-bold text-gray-800 text-xs md:text-base">
+                                        <i data-lucide="shield-check" class="w-4 h-4 md:w-5 md:h-5 text-yellow-600"></i>
+                                        1. Emisor Habilitado
+                                    </div>
+                                    <p class="text-[10px] md:text-sm text-gray-600 mt-0.5 pl-6">RUC activo y habido.</p>
+                                </div>
+                    
+                                <div id="exp-igv" class="explanation-card p-2 md:p-4 rounded-lg border-l-4 bg-gray-50 border-gray-300 shadow-sm">
+                                    <div class="flex items-center gap-2 font-bold text-gray-800 text-xs md:text-base">
+                                        <i data-lucide="pie-chart" class="w-4 h-4 md:w-5 md:h-5 text-green-600"></i>
+                                        2. IGV Desagregado
+                                    </div>
+                                    <p class="text-[10px] md:text-sm text-gray-600 mt-0.5 pl-6">Impuesto separado.</p>
+                                </div>
+                    
+                                <div id="exp-banco" class="explanation-card p-2 md:p-4 rounded-lg border-l-4 bg-gray-50 border-gray-300 shadow-sm">
+                                    <div class="flex items-center gap-2 font-bold text-gray-800 text-xs md:text-base">
+                                        <i data-lucide="dollar-sign" class="w-4 h-4 md:w-5 md:h-5 text-indigo-600"></i>
+                                        3. Medios de Pago
+                                    </div>
+                                    <p class="text-[10px] md:text-sm text-gray-600 mt-0.5 pl-6">Bancarizar > S/ 2,000.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SLIDE 4: SIMULADOR 621 (MEJORADO) -->
+                    <div class="slide w-full" id="slide-3">
+                        <div class="flex flex-col h-full gap-3 lg:gap-8 pb-2 w-full">
+                            <!-- Controles -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-8 shrink-0 w-full">
+                                <!-- Input Ventas -->
+                                <div class="bg-white p-3 md:p-4 rounded-xl shadow-sm border border-red-100 w-full">
+                                    <div class="flex justify-between items-center mb-2 md:mb-4">
+                                        <label class="text-xs md:text-base font-bold text-red-600 uppercase">Tus Ventas</label>
+                                        <div class="bg-red-50 text-red-700 px-2 py-0.5 rounded text-xs md:text-base font-mono font-bold" id="lblBaseVentas">S/ 5,000</div>
+                                    </div>
+                                    <input type="range" id="rangeVentas" min="0" max="20000" step="100" value="5000" class="w-full">
+                                </div>
+
+                                <!-- Input Compras -->
+                                <div class="bg-white p-3 md:p-4 rounded-xl shadow-sm border border-green-100 w-full">
+                                    <div class="flex justify-between items-center mb-2 md:mb-4">
+                                        <label class="text-xs md:text-base font-bold text-green-600 uppercase">Tus Compras</label>
+                                        <div class="bg-green-50 text-green-700 px-2 py-0.5 rounded text-xs md:text-base font-mono font-bold" id="lblBaseCompras">S/ 2,000</div>
+                                    </div>
+                                    <input type="range" id="rangeCompras" min="0" max="20000" step="100" value="2000" class="w-full">
+                                </div>
+                            </div>
+                  
+                            <!-- Gráfico Visual -->
+                            <div class="flex-1 bg-white rounded-xl border border-slate-200 p-3 md:p-8 flex flex-col shadow-inner relative overflow-hidden min-h-[180px] w-full">
+                                <!-- Líneas de guía de fondo -->
+                                <div class="absolute inset-0 flex flex-col justify-between p-8 opacity-5 pointer-events-none z-0">
+                                    <div class="w-full h-px bg-slate-900"></div>
+                                    <div class="w-full h-px bg-slate-900"></div>
+                                    <div class="w-full h-px bg-slate-900"></div>
+                                    <div class="w-full h-px bg-slate-900"></div>
+                                    <div class="w-full h-px bg-slate-900"></div>
+                                </div>
+
+                                <!-- Área de Barras -->
+                                <div class="flex-1 flex items-end justify-center gap-8 md:gap-32 relative z-10 pb-1 w-full">
+                                    
+                                    <!-- Barra Ventas -->
+                                    <div class="flex flex-col items-center w-20 md:w-32 h-full justify-end group">
+                                        <!-- Contenedor Barra -->
+                                        <div id="barVentas" class="bar-fill w-full bg-gradient-to-t from-red-600 to-red-400 rounded-t-lg shadow-lg relative flex justify-center pt-1 md:pt-2 overflow-hidden border-t border-red-300" style="height: 25%;">
+                                            <!-- Texto Horizontal en la parte superior -->
+                                            <span id="txtBarVentas" class="text-white font-bold text-[10px] md:text-lg tracking-wide drop-shadow-md z-20 whitespace-nowrap px-1">S/ 900</span>
+                                        </div>
+                                        <div class="mt-1 md:mt-3 text-[10px] md:text-sm font-bold text-gray-500 uppercase tracking-wider text-center border-t-2 border-red-200 pt-1 w-full">Débito</div>
+                                    </div>
+                        
+                                    <!-- VS Icon Flotante -->
+                                    <div class="absolute bottom-6 md:bottom-12 text-gray-200 font-black text-4xl md:text-7xl select-none z-0">VS</div>
+                        
+                                    <!-- Barra Compras -->
+                                    <div class="flex flex-col items-center w-20 md:w-32 h-full justify-end group">
+                                        <div id="barCompras" class="bar-fill w-full bg-gradient-to-t from-green-600 to-green-400 rounded-t-lg shadow-lg relative flex justify-center pt-1 md:pt-2 overflow-hidden border-t border-green-300" style="height: 10%;">
+                                            <span id="txtBarCompras" class="text-white font-bold text-[10px] md:text-lg tracking-wide drop-shadow-md z-20 whitespace-nowrap px-1">S/ 360</span>
+                                        </div>
+                                        <div class="mt-1 md:mt-3 text-[10px] md:text-sm font-bold text-gray-500 uppercase tracking-wider text-center border-t-2 border-green-200 pt-1 w-full">Crédito</div>
+                                    </div>
+                                </div>
+                            </div>
+                  
+                            <!-- Resultado Final -->
+                            <div id="resultBox" class="p-3 md:p-6 rounded-xl text-white shadow-lg text-center transition-colors duration-300 bg-blue-600 shrink-0 flex flex-col items-center justify-center min-h-[80px] w-full">
+                                <h3 id="resultTitle" class="uppercase text-[10px] md:text-sm font-bold tracking-widest opacity-90 mb-1">
+                                    Resultado: Impuesto a Pagar
+                                </h3>
+                                <div class="flex items-baseline gap-2 md:gap-3 justify-center w-full">
+                                    <span class="text-base md:text-xl opacity-80 font-light hidden sm:inline">Total:</span>
+                                    <div id="resultAmount" class="text-3xl md:text-5xl font-black tracking-tight">
+                                        S/ 540.00
+                                    </div>
+                                </div>
+                                <div id="resultMsg" class="text-[10px] md:text-sm mt-2 bg-white/20 px-3 py-1 rounded-full hidden backdrop-blur-sm font-medium animate-bounce">
+                                    ✨ Saldo a favor
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SLIDE 5: EL SEMÁFORO -->
+                    <div class="slide w-full" id="slide-4">
+                        <div class="flex items-center justify-center h-full pb-2 w-full">
+                            <div class="grid grid-cols-1 gap-4 w-full max-w-3xl h-full overflow-y-auto content-center px-2">
+                                
+                                <!-- Red Light -->
+                                <div class="bg-white rounded-xl shadow-md border-l-8 border-red-500 p-3 md:p-6 flex items-start md:items-center gap-3 md:gap-5 transition-transform hover:scale-[1.01] w-full">
+                                    <div class="bg-red-100 p-2 md:p-4 rounded-full shrink-0">
+                                        <i data-lucide="alert-triangle" class="w-6 h-6 md:w-10 md:h-10 text-red-600"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-sm md:text-xl text-gray-800">Peligro: Operaciones No Reales</h3>
+                                        <p class="text-xs md:text-base text-gray-600 mt-0.5">
+                                            Usar facturas falsas ("de favor") es delito.
+                                        </p>
+                                    </div>
+                                </div>
+                    
+                                <!-- Yellow Light -->
+                                <div class="bg-white rounded-xl shadow-md border-l-8 border-yellow-500 p-3 md:p-6 flex items-start md:items-center gap-3 md:gap-5 transition-transform hover:scale-[1.01] w-full">
+                                    <div class="bg-yellow-100 p-2 md:p-4 rounded-full shrink-0">
+                                        <i data-lucide="shopping-cart" class="w-6 h-6 md:w-10 md:h-10 text-yellow-600"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-sm md:text-xl text-gray-800">Precaución: Gastos Personales</h3>
+                                        <p class="text-xs md:text-base text-gray-600 mt-0.5">
+                                            El mercado de casa o ropa personal NO otorgan crédito fiscal.
+                                        </p>
+                                    </div>
+                                </div>
+                    
+                                <!-- Green Light -->
+                                <div class="bg-white rounded-xl shadow-md border-l-8 border-green-500 p-3 md:p-6 flex items-start md:items-center gap-3 md:gap-5 transition-transform hover:scale-[1.01] w-full">
+                                    <div class="bg-green-100 p-2 md:p-4 rounded-full shrink-0">
+                                        <i data-lucide="check-circle-2" class="w-6 h-6 md:w-10 md:h-10 text-green-600"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-sm md:text-xl text-gray-800">Zona Segura: Buenas Prácticas</h3>
+                                        <p class="text-xs md:text-base text-gray-600 mt-0.5">
+                                            Archivar XMLs, verificar RUCs activos y pagar detracciones.
+                                        </p>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- FOOTER / NAV -->
+            <div class="bg-white border-t border-gray-200 p-3 md:p-5 flex items-center justify-between z-20 shrink-0 w-full">
+                <button id="btnPrev" class="flex items-center gap-1 md:gap-2 px-3 md:px-5 py-2 md:py-3 rounded-xl font-bold transition-all text-xs md:text-base text-gray-400 bg-gray-100 cursor-not-allowed disabled:opacity-50" disabled>
+                    <i data-lucide="chevron-left" class="w-4 h-4 md:w-5 md:h-5"></i>
+                    <span class="hidden sm:inline">Anterior</span>
+                </button>
+
+                <div class="flex flex-col items-center">
+                    <span class="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-widest" id="slideIndicator">
+                        1 / 5
+                    </span>
+                    <!-- Barra de progreso visual -->
+                    <div class="w-24 md:w-40 h-1.5 bg-gray-100 rounded-full mt-2 overflow-hidden">
+                        <div id="progressBar" class="h-full bg-blue-600 transition-all duration-300" style="width: 20%"></div>
                     </div>
                 </div>
 
+                <button id="btnNext" class="flex items-center gap-1 md:gap-2 px-3 md:px-5 py-2 md:py-3 rounded-xl font-bold transition-all text-xs md:text-base bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-blue-500/30 active:scale-95">
+                    <span class="hidden sm:inline">Siguiente</span>
+                    <i data-lucide="chevron-right" class="w-4 h-4 md:w-5 md:h-5"></i>
+                </button>
             </div>
-        </div>
-
-        <!-- FOOTER / NAV -->
-        <div class="bg-white border-t border-gray-200 p-3 md:p-5 flex items-center justify-between z-20 shrink-0">
-            <button id="btnPrev" class="flex items-center gap-1 md:gap-2 px-5 py-3 rounded-xl font-bold transition-all text-sm md:text-base text-gray-400 bg-gray-100 cursor-not-allowed disabled:opacity-50" disabled>
-                <i data-lucide="chevron-left" class="w-5 h-5"></i>
-                <span class="hidden sm:inline">Anterior</span>
-            </button>
-
-            <div class="flex flex-col items-center">
-                <span class="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-widest" id="slideIndicator">
-                    1 / 5
-                </span>
-                <!-- Barra de progreso visual -->
-                <div class="w-24 md:w-40 h-1.5 bg-gray-100 rounded-full mt-2 overflow-hidden">
-                    <div id="progressBar" class="h-full bg-blue-600 transition-all duration-300" style="width: 20%"></div>
-                </div>
-            </div>
-
-            <button id="btnNext" class="flex items-center gap-1 md:gap-2 px-5 py-3 rounded-xl font-bold transition-all text-sm md:text-base bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-blue-500/30 active:scale-95">
-                <span class="hidden sm:inline">Siguiente</span>
-                <i data-lucide="chevron-right" class="w-5 h-5"></i>
-            </button>
         </div>
     </div>
 
@@ -506,7 +531,7 @@
             els.dots.innerHTML = '';
             for(let i=0; i<totalSlides; i++) {
                 const dot = document.createElement('div');
-                dot.className = `rounded-full transition-all duration-300 ${i === currentSlide ? 'bg-yellow-400 w-2.5 h-2.5 md:w-3 md:h-3' : 'bg-blue-300/40 w-1.5 h-1.5 md:w-2 md:h-2'}`;
+                dot.className = `rounded-full transition-all duration-300 shrink-0 ${i === currentSlide ? 'bg-yellow-400 w-2.5 h-2.5 md:w-3 md:h-3' : 'bg-blue-300/40 w-1.5 h-1.5 md:w-2 md:h-2'}`;
                 els.dots.appendChild(dot);
             }
 
@@ -519,10 +544,10 @@
             const isLast = currentSlide === totalSlides - 1;
 
             els.prev.disabled = isFirst;
-            els.prev.className = `flex items-center gap-1 md:gap-2 px-5 py-3 rounded-xl font-bold transition-all text-sm md:text-base ${isFirst ? 'text-gray-300 bg-gray-50' : 'text-blue-700 bg-blue-50 hover:bg-blue-100 active:scale-95'}`;
+            els.prev.className = `flex items-center gap-1 md:gap-2 px-3 md:px-5 py-2 md:py-3 rounded-xl font-bold transition-all text-xs md:text-base ${isFirst ? 'text-gray-300 bg-gray-50' : 'text-blue-700 bg-blue-50 hover:bg-blue-100 active:scale-95'}`;
 
             els.next.disabled = isLast;
-            els.next.className = `flex items-center gap-1 md:gap-2 px-5 py-3 rounded-xl font-bold transition-all text-sm md:text-base ${isLast ? 'text-gray-300 bg-gray-50 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-blue-500/30 active:scale-95'}`;
+            els.next.className = `flex items-center gap-1 md:gap-2 px-3 md:px-5 py-2 md:py-3 rounded-xl font-bold transition-all text-xs md:text-base ${isLast ? 'text-gray-300 bg-gray-50 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg hover:shadow-blue-500/30 active:scale-95'}`;
         }
 
         els.prev.addEventListener('click', () => { if(currentSlide > 0) { currentSlide--; updateUI(); }});
@@ -537,10 +562,10 @@
             const activate = () => {
                 // Reset all
                 document.querySelectorAll('.explanation-card').forEach(c => {
-                    c.className = 'explanation-card p-3 md:p-4 rounded-lg border-l-4 bg-gray-50 border-gray-300 shadow-sm opacity-60 scale-95';
+                    c.className = 'explanation-card p-2 md:p-4 rounded-lg border-l-4 bg-gray-50 border-gray-300 shadow-sm opacity-60 scale-95';
                 });
                 // Activate target
-                exp.className = `explanation-card active p-3 md:p-4 rounded-lg border-l-4 shadow-md bg-${color}-50 border-${color}-500`;
+                exp.className = `explanation-card active p-2 md:p-4 rounded-lg border-l-4 shadow-md bg-${color}-50 border-${color}-500`;
             };
 
             el.addEventListener('mouseenter', activate);
@@ -566,11 +591,9 @@
             document.getElementById('lblBaseCompras').textContent = `S/ ${c.toLocaleString()}`;
 
             // --- BARRAS ---
-            // Max Value reference (Sales 20k => IGV 3600)
             const maxIGV = 3600; 
             
             // Calculate % height relative to max possible
-            // Usamos Math.max(1, ...) para que nunca sea 0% y se rompa el estilo visual
             const hV = Math.max(0, (igvV / maxIGV) * 100);
             const hC = Math.max(0, (igvC / maxIGV) * 100);
 
@@ -585,9 +608,7 @@
             txtV.textContent = igvV > 0 ? `S/ ${igvV.toFixed(0)}` : '';
             txtC.textContent = igvC > 0 ? `S/ ${igvC.toFixed(0)}` : '';
 
-            // Lógica de visibilidad del texto:
-            // Si la barra es muy pequeña (< 12%), el texto podría cortarse.
-            // Opción: Ocultarlo o sacarlo fuera. Aquí lo ocultamos si es minúsculo para limpieza.
+            // Lógica de visibilidad del texto
             txtV.style.opacity = hV < 8 ? '0' : '1';
             txtC.style.opacity = hC < 8 ? '0' : '1';
 
@@ -599,19 +620,19 @@
 
             if(res > 0) {
                 // A Pagar
-                box.className = "p-4 md:p-6 rounded-xl text-white shadow-lg text-center transition-colors duration-300 bg-blue-600 shrink-0 flex flex-col items-center justify-center min-h-[100px]";
+                box.className = "p-3 md:p-6 rounded-xl text-white shadow-lg text-center transition-colors duration-300 bg-blue-600 shrink-0 flex flex-col items-center justify-center min-h-[80px] w-full";
                 title.textContent = "IMPUESTO A PAGAR";
                 amount.textContent = `S/ ${res.toLocaleString('es-PE', {minimumFractionDigits: 2})}`;
                 msg.classList.add('hidden');
             } else if (res < 0) {
                 // Saldo a Favor
-                box.className = "p-4 md:p-6 rounded-xl text-white shadow-lg text-center transition-colors duration-300 bg-emerald-500 shrink-0 flex flex-col items-center justify-center min-h-[100px]";
+                box.className = "p-3 md:p-6 rounded-xl text-white shadow-lg text-center transition-colors duration-300 bg-emerald-500 shrink-0 flex flex-col items-center justify-center min-h-[80px] w-full";
                 title.textContent = "SALDO A FAVOR";
                 amount.textContent = `S/ ${Math.abs(res).toLocaleString('es-PE', {minimumFractionDigits: 2})}`;
                 msg.classList.remove('hidden');
             } else {
                 // Cero
-                box.className = "p-4 md:p-6 rounded-xl text-white shadow-lg text-center transition-colors duration-300 bg-slate-500 shrink-0 flex flex-col items-center justify-center min-h-[100px]";
+                box.className = "p-3 md:p-6 rounded-xl text-white shadow-lg text-center transition-colors duration-300 bg-slate-500 shrink-0 flex flex-col items-center justify-center min-h-[80px] w-full";
                 title.textContent = "RESULTADO NETO";
                 amount.textContent = `S/ 0.00`;
                 msg.classList.add('hidden');
@@ -621,7 +642,6 @@
         if(rVentas && rCompras) {
             rVentas.addEventListener('input', calc);
             rCompras.addEventListener('input', calc);
-            // Delay inicial para asegurar renderizado correcto
             setTimeout(calc, 100);
         }
 
